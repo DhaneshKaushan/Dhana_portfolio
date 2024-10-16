@@ -5,8 +5,8 @@ import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import GitHubIcon from "@mui/icons-material/GitHub";
 import MailIcon from "@mui/icons-material/Mail";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
-import Swal from 'sweetalert2';
-
+import Swal from "sweetalert2";
+import emailjs from "@emailjs/browser";
 
 import { Menu } from "lucide-react";
 import { useState } from "react";
@@ -21,9 +21,92 @@ import {
 
 export default function Home() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
+  const [subject, setSubject] = useState("");
+  const [mobile, setMobile] = useState("");
+  const [isloading, setIsLoading] = useState(false);
+
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const closeSidebar = () => {
     setIsSidebarOpen(false);
+  };
+
+  const sendEmail = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSuccess("");
+    if (!email) {
+      setError("Please enter your email");
+      return;
+    }
+    if (!message) {
+      setError("Please enter your message");
+      return;
+    }
+    if (!fullName) {
+      setError("Please enter your name");
+      return;
+    }
+    if (!mobile) {
+      setError("Please enter your Number");
+      return;
+    }
+    if (!subject) {
+      setError("Please enter your sub");
+      return;
+    }
+
+    const templateParams = {
+      from_name: fullName,
+      from_email: email,
+      from_mobile: mobile,
+      from_Subject: subject,
+      to_name: "Dhanesh Kaushan",
+      message,
+    };
+
+    setError("");
+    setIsLoading(true);
+    emailjs
+      .send(
+        process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID ?? "",
+        process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID ?? "",
+        templateParams,
+        process.env.NEXT_PUBLIC_EMAILJS_USER_ID ?? ""
+      )
+      .then(
+        function (response) {
+          setEmail("");
+          setFullName("");
+          setMessage("");
+          setMobile("");
+          setSubject("");
+          setIsLoading(false);
+          setSuccess(
+            "Your message has been sent successFully.I will get back to you soon."
+          );
+          Swal.fire({
+            icon: "success",
+            title: "Email sent successfully!",
+            showConfirmButton: false,
+            timer: 2700, // Duration in milliseconds before the alert closes automatically
+          });
+        },
+        function (error) {
+          setError("Some error occurred.");
+          console.error(error);
+          setIsLoading(false);
+          Swal.fire({
+            icon: "error",
+            title: "Error sending email.",
+            text: "Please try again later.", // Optional additional text
+            confirmButtonText: "OK",
+          });
+        }
+      );
   };
 
   return (
@@ -206,7 +289,7 @@ active:text-[var(--main-color)]"
 
         <div className="about-image relative w-[25rem] h-[25rem] rounded-full flex justify-center items-center">
           <Image
-            src="./1.png"
+            src="/1.png"
             alt="Profile Image"
             width={225}
             height={225}
@@ -445,116 +528,26 @@ active:text-[var(--main-color)]"
         </div>
       </section>
 
-     
-          {/* ----------------------For another Column--------------------------- */}
+      {/* ----------------------For another Column--------------------------- */}
 
-      
-
-      {/* <section className="contact" id="contact">
-        <center></center>
-        <h2 className="heading">
-          Contact <span>Me!</span>
-        </h2>
-
-        <form action="#">
-          <div className="input-box">
-            <div className="input-field">
-              <input type="text" placeholder="Full Name" required />
-              <span className="focus"></span>
-            </div>
-            <div className="input-field">
-              <input type="text" placeholder="Email Address" required />
-              <span className="focus"></span>
-            </div>
-          </div>
-
-          <div className="input-box">
-            <div className="input-field">
-              <input type="string" placeholder="Mobile Number" required />
-              <span className="focus"></span>
-            </div>
-            <div className="input-field">
-              <input type="text" placeholder="Email Subject" required />
-              <span className="focus"></span>
-            </div>
-          </div>
-          <div className="textarea-field">
-            <textarea
-              name=""
-              id=""
-              cols={30}
-              rows={10}
-              placeholder="Your Message"
-              required
-            ></textarea>
-            <span className="focus"></span>
-          </div>
-
-          <div className="btn-box btns">
-            <a href="#contact" className="btn">
-              Submit
-            </a>
-          </div>
-        </form>
-      </section> */}
+    
       <section className="contact" id="contact">
         <center></center>
         <h2 className="heading">
           Contact <span>Me!</span>
         </h2>
-
-        <form
-          onSubmit={async (e) => {
-            e.preventDefault();
-            const form = e.currentTarget as HTMLFormElement; // Explicitly cast to HTMLFormElement
-            const formData = {
-              fullName: (
-                form.elements.namedItem("fullName") as HTMLInputElement
-              ).value,
-              email: (form.elements.namedItem("email") as HTMLInputElement)
-                .value,
-              mobile: (form.elements.namedItem("mobile") as HTMLInputElement)
-                .value,
-              subject: (form.elements.namedItem("subject") as HTMLInputElement)
-                .value,
-              message: (
-                form.elements.namedItem("message") as HTMLTextAreaElement
-              ).value,
-            };
-
-            const res = await fetch("/api/sendEmail", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(formData),
-            });
+        <form onSubmit={sendEmail}>
+          
 
           
-            if (res.ok) {
-              Swal.fire({
-                icon: 'success',
-                title: 'Email sent successfully!',
-                showConfirmButton: false,
-                timer: 2500 // Duration in milliseconds before the alert closes automatically
-              });
-            } else {
-              Swal.fire({
-                icon: 'error',
-                title: 'Error sending email.',
-                text: 'Please try again later.', // Optional additional text
-                confirmButtonText: 'OK'
-              });
-            }
-            
-          }}
-        >
           <div className="input-box">
             <div className="input-field">
               <input
                 type="text"
                 name="fullName"
                 placeholder="Full Name"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
                 required
               />
               <span className="focus"></span>
@@ -564,6 +557,8 @@ active:text-[var(--main-color)]"
                 type="email"
                 name="email"
                 placeholder="Email Address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
               <span className="focus"></span>
@@ -576,6 +571,8 @@ active:text-[var(--main-color)]"
                 type="text"
                 name="mobile"
                 placeholder="Mobile Number"
+                value={mobile}
+                onChange={(e) => setMobile(e.target.value)}
                 required
               />
               <span className="focus"></span>
@@ -585,6 +582,8 @@ active:text-[var(--main-color)]"
                 type="text"
                 name="subject"
                 placeholder="Email Subject"
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
                 required
               />
               <span className="focus"></span>
@@ -596,6 +595,8 @@ active:text-[var(--main-color)]"
               cols={30}
               rows={10}
               placeholder="Your Message"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
               required
             ></textarea>
             <span className="focus"></span>
